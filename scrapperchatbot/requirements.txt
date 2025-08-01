@@ -1,0 +1,15 @@
+beautifulsoup4==4.13.4
+Django==5.2
+fastapi==0.116.1
+itemadapter==0.3.0
+langchain==0.3.27
+langchain_community==0.3.27
+langchain_core==0.3.72
+langchain_openai==0.3.28
+langchain_postgres==0.0.15
+langchain_text_splitters==0.3.9
+langgraph==0.6.2
+python-dotenv==1.1.1
+Requests==2.32.4
+Scrapy==2.8.0
+trafilatura==2.0.0

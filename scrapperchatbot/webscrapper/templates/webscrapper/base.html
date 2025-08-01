@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Bot Dashboard{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            color: #333;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ecf0f1;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            display: block;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #34495e;
+            color: white;
+        }
+        
+        .sidebar .logout-button {
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 25px;
+
+        }
+        
+        .sidebar .logout-button:hover {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        /* Main Content Area */
+        .main-container {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Your other CSS styles go here */
+        .header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .welcome-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .dashboard-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+        .messages li {
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+        }
+        .messages .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        .messages .success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .messages .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+
+        .bot-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bot-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 0.5rem;
+        }
+
+        .bot-card p {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .bot-card .meta {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 1rem;
+            border-top: 1px solid #eee;
+            padding-top: 0.8rem;
+        }
+        
+        .bot-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .bot-actions a, .bot-actions button[type="submit"] {
+            display: inline-block;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            flex-grow: 1;
+            border: none;
+            cursor: pointer;
+        }
+
+        .bot-actions .upload-pdf-button {
+            background-color: #28a745;
+            color: white;
+        }
+        .bot-actions .upload-pdf-button:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+
+        .bot-actions .manage-bot-button {
+            background-color: #6c757d;
+            color: white;
+        }
+        .bot-actions .manage-bot-button:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .bot-actions .chat-bot-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .bot-actions .chat-bot-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .no-bots-message {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-top: 2rem;
+            padding: 20px;
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            background-color: #e9ecef;
+        }
+        
+        .add-bot-button {
+            display: inline-block;
+            padding: 0.7rem 1.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+            margin-top: 2rem;
+        }
+        
+        .add-bot-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .pdf-upload-form, .url-input-form {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #e9ecef;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pdf-upload-form label, .url-input-form label {
+            font-size: 0.85rem;
+            color: #555;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .pdf-upload-form input[type="file"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            background-color: #f8f8f8;
+            cursor: pointer;
+        }
+        
+        .pdf-upload-form .submit-button {
+            background-color: #28a745;
+            color: white;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: none;
+        }
+
+        .url-input-form input[type="url"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            background-color: #f8f8f8;
+        }
+        
+        .url-input-form .submit-button {
+            background-color: #17a2b8;
+            color: white;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: none;
+        }
+        
+        .errorlist {
+            color: #dc3545;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+            padding-left: 0;
+            list-style: none;
+        }
+
+    </style>
+</head>
+<body>
+    {% include 'webscrapper/sidebar.html' %}
+    
+    <div class="main-container">
+        {% block main_content %}
+            {% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LangGraph Chatbot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+   body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  height: 100vh;
+  padding: 0;
+  background: #f8fafc;
+}
+
+    .glass {
+      background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .chat-wrapper {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.chat-wrapper.collapsed .glass {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-wrapper.expanded .glass {
+  width: 100%;
+  max-width: 400px;
+  height: 540px; /* Overall fixed height of the expanded chat window */
+  border-radius: 1.5rem;
+}
+
+    .chat-header {
+      background: transparent;
+      color: #1f2937;
+      padding: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      user-select: none;
+      gap: 0.5rem;
+    }
+
+    .chat-wrapper.collapsed .chat-header {
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-wrapper.collapsed .chat-header span,
+    .chat-wrapper.collapsed .chat-header hr {
+      display: none;
+    }
+
+    /* FIX: This new rule explicitly shows the header elements when expanded */
+    .chat-wrapper.expanded .chat-header span,
+    .chat-wrapper.expanded .chat-header hr {
+        display: block;
+    }
+
+
+    .chat-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%; /* Make chat-body fill the remaining height of its parent (.glass) */
+    }
+
+    .chat-wrapper.collapsed .chat-body {
+      display: none;
+    }
+
+    .chat-messages {
+      flex-grow: 1; /* Allows chat messages to take up available space */
+      overflow-y: auto; /* Enables scrolling if messages exceed available height */
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem; /* Reduced gap between messages */
+      scrollbar-width: thin;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background-color: rgba(100, 116, 139, 0.3);
+      border-radius: 10px;
+    }
+    .bot ul {
+      list-style-type: disc; /* Ensures standard bullet points */
+      padding-left: 20px;   /* Add some padding for the bullet points to show */
+      margin-top: 0.5rem;   /* Add some space above the list */
+      margin-bottom: 0.5rem; /* Add some space below the list */
+    }
+
+    .bot ol {
+      list-style-type: decimal; /* Ensures numbered list points */
+      padding-left: 20px;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .bot li {
+      margin-bottom: 0.25rem; /* Space between list items */
+    }
+
+    /* Adjust the .message padding to accommodate lists */
+    .message {
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      max-width: 380px; /* Set desired max-width for message bubbles (400px glass - 20px total horizontal padding) */
+    }
+
+    /* Important: Prevent individual messages from adding extra margin, let gap handle it */
+    .message + .message {
+        margin-top: 0;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #dbeafe;
+      color: #1e40af;
+      border-bottom-right-radius: 0.25rem;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: #f1f5f9;
+      color: #334155;
+      border-bottom-left-radius: 0.25rem;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      background-color: rgba(255, 255, 255, 0.05);
+      margin-top: 0; /* Ensure no extra top margin */
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 9999px;
+      border: 1px solid #cbd5e1;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    .chat-input-area button {
+      background: linear-gradient(to right, #6366f1, #4f46e5);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .chat-input-area button:hover {
+      background: #4338ca;
+    }
+
+    .loading {
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+      margin: 0.5rem 1rem; /* Keep existing margins for loader */
+    }
+
+    .rotate-180 {
+      transform: rotate(180deg);
+    }
+
+    .chat-brand {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      border-top: 1px solid #e2e8f0;
+      background-color: rgba(255, 255, 255, 0.07);
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-wrapper" class="chat-wrapper collapsed">
+    <div class="glass">
+      <div id="chat-header" class="chat-header">
+        <div style="display: flex; flex-direction: column;">
+          <span>Infi Web Solutions</span>
+          <hr style="width: 100%; border: 1px solid #ccc; margin-top: 4px;" />
+        </div>
+        <svg id="toggle-icon" class="h-6 w-6 text-gray-700 transition-transform duration-300" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+
+      <div class="chat-body">
+        <div id="chat-messages" class="chat-messages">
+          <div class="message bot">Hello! How can I help you today?</div>
+        </div>
+        <div id="loading-indicator" class="loading hidden">Thinking...</div>
+        <div class="chat-input-area">
+          <input id="user-input" type="text" placeholder="Ask a question..." />
+          <button id="send-button">Send</button>
+        </div>
+        <div class="chat-brand">Powered by Your Brand</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatWrapper = document.getElementById('chat-wrapper');
+    const chatHeader = document.getElementById('chat-header');
+    const toggleIcon = document.getElementById('toggle-icon');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const chatMessages = document.getElementById('chat-messages');
+    const loadingIndicator = document.getElementById('loading-indicator');
+
+    // Initialize the arrow to point up when collapsed
+    toggleIcon.classList.add('rotate-180');
+
+    chatHeader.addEventListener('click', () => {
+      const isCollapsed = chatWrapper.classList.contains('collapsed');
+      chatWrapper.classList.toggle('collapsed', !isCollapsed);
+      chatWrapper.classList.toggle('expanded', isCollapsed);
+
+      toggleIcon.classList.toggle('rotate-180', !isCollapsed);
+
+      if (isCollapsed) {
+        setTimeout(() => userInput.focus(), 300);
+      }
+    });
+
+    function addMessage(text, sender) {
+      const msg = document.createElement('div');
+      msg.className = `message ${sender}`;
+      msg.innerHTML = text;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const question = userInput.value.trim();
+      if (!question) return;
+
+      addMessage(question, 'user');
+      userInput.value = '';
+      sendButton.disabled = true;
+      loadingIndicator.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/webscrapper/chatbot/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await res.json();
+        addMessage(data.response || data.error || 'No response', 'bot');
+      } catch (e) {
+        console.error('Error sending message:', e);
+        addMessage('Something went wrong. Please try again.', 'bot');
+      } finally {
+        sendButton.disabled = false;
+        loadingIndicator.classList.add('hidden');
+        userInput.focus();
+      }
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>

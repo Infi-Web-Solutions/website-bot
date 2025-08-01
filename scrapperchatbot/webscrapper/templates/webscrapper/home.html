@@ -1,0 +1,52 @@
+{% extends 'webscrapper/base.html' %}
+
+{% block main_content %}
+    <div class="header">
+        <span class="welcome-message">Hello, {{ username }}!</span>
+    </div>
+    
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="dashboard-container">
+        <h1>My Bot</h1>
+        
+        {% if user_bot %}
+            <div class="bot-card">
+                <div>
+                    <h3>{{ user_bot.name }}</h3>
+                    <p>{{ user_bot.description|default:"No description provided." }}</p>
+                    <div class="meta">
+                        Created: {{ user_bot.created_at|date:"M d, Y H:i" }}
+                        <br>
+                        Collection: {{ user_bot.collection_name|truncatechars:15 }}...
+                    </div>
+                </div>
+                
+    
+
+                <form action="{% url 'webscrapper:upload_pdf' user_bot.id %}" method="post" enctype="multipart/form-data" class="pdf-upload-form">
+                    {% csrf_token %}
+                    <label for="pdf_file_{{ user_bot.id }}">Upload PDF:</label>
+                    <input type="file" name="pdf_file" id="pdf_file_{{ user_bot.id }}" accept=".pdf" required>
+                    <button type="submit" class="submit-button">Upload PDF</button>
+                </form>
+
+                <form action="{% url 'webscrapper:add_url' user_bot.id %}" method="post" class="url-input-form">
+                    {% csrf_token %}
+                    <label for="url_to_scrape_{{ user_bot.id }}">Add URL:</label>
+                    <input type="url" name="url_to_scrape" id="url_to_scrape_{{ user_bot.id }}" placeholder="e.g., https://example.com/page" required>
+                    <button type="submit" class="submit-button">Add URL</button>
+                </form>
+            </div>
+        {% else %}
+            <p class="no-bots-message">You don't have a bot yet. Click the button below to create your first bot!</p>
+            <a href="{% url 'webscrapper:add_bot' %}" class="add-bot-button">Create Your Bot</a>
+        {% endif %}
+    </div>
+{% endblock %}
