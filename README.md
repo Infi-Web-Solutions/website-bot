@@ -1,5 +1,5 @@
 
-# Project Name
+# Website Bot
 
 A Django-based web application that serves as a web scraper and chatbot platform. This project allows users to create a personalized bot, upload documents (like PDFs), and scrape URLs to create a knowledge base. The bot, powered by LangChain and LangGraph, can then answer user questions based on this stored information.
 
